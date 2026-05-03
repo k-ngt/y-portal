@@ -1,0 +1,225 @@
+:root {
+    color-scheme: light dark;
+    accent-color: var(--accent-color);
+
+    --accent-color: light-dark(maroon, orange);
+    --scrollbar-thumb: rgb(150, 150, 255);
+    --scrollbar-thumb-hover: rgb(100, 100, 255);
+    --scrollbar-thumb-active: rgb(80, 80, 255);
+    --scrollbar-track: rgb(220, 220, 255);
+    --scrollbar-track-hover: rgb(210, 210, 255);
+    --scrollbar-track-active: rgb(200, 200, 255);
+    --scrollbar-start: rgba(0, 0, 0, 0.1);
+    --scrollbar-end: rgba(255, 255, 255, 0.1);
+}
+
+@supports selector(::-webkit-scrollbar) {
+
+    /* スクロールバー全体の太さ */
+    ::-webkit-scrollbar {
+        width: 12px;
+        /* 縦スクロールバーの幅 */
+        height: 12px;
+        /* 横スクロールバーの高さ */
+    }
+
+    /* 背景のレール */
+    ::-webkit-scrollbar-track {
+        background: var(--scrollbar-track);
+        border-radius: 12px;
+    }
+
+    ::-webkit-scrollbar-track:hover {
+        background: var(--scrollbar-track-hover);
+    }
+
+    ::-webkit-scrollbar-track:active {
+        background: var(--scrollbar-track-active);
+    }
+
+    /* 持ち手 */
+    ::-webkit-scrollbar-thumb {
+        background-color: var(--scrollbar-thumb);
+        border-radius: 12px;
+        border: 2px solid transparent;
+
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>👺</text></svg>");
+        background-size: 14px 14px;
+        background-repeat: no-repeat;
+        background-position: center center;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--scrollbar-thumb-hover);
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>😺</text></svg>");
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+        background-color: var(--scrollbar-thumb-active);
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>😾</text></svg>");
+    }
+
+    /* スクロールバーの両端にある矢印ボタン */
+    ::-webkit-scrollbar-button:single-button {
+        display: block;
+        height: 12px;
+        width: 12px;
+        background-color: var(--scrollbar-track);
+        border-radius: 12px;
+        background-size: 12px 12px;
+        background-repeat: no-repeat;
+        background-position: center center;
+    }
+
+    ::-webkit-scrollbar-button:single-button:hover {
+        background-color: var(--scrollbar-thumb-hover);
+    }
+
+    ::-webkit-scrollbar-button:single-button:active {
+        background-color: var(--scrollbar-thumb-active);
+    }
+
+    /* ボタンの上 */
+    ::-webkit-scrollbar-button:single-button:vertical:decrement {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>🥕</text></svg>");
+    }
+
+    /* ボタンの左 */
+    ::-webkit-scrollbar-button:single-button:horizontal:decrement {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>🥬</text></svg>");
+    }
+
+    /* ボタンの下 */
+    ::-webkit-scrollbar-button:single-button:vertical:increment {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>🍊</text></svg>");
+    }
+
+    /* ボタンの右 */
+    ::-webkit-scrollbar-button:single-button:horizontal:increment {
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>🐈</text></svg>");
+    }
+
+    /* つまみより上のレール */
+    ::-webkit-scrollbar-track-piece:start {
+        background-color: var(--scrollbar-start);
+        border-radius: 12px;
+    }
+
+    /* つまみより下のレール */
+    ::-webkit-scrollbar-track-piece:end {
+        background-color: var(--scrollbar-end);
+        border-radius: 12px;
+    }
+
+    /* 両方のスクロールバーの角の空白 */
+    ::-webkit-scrollbar-corner {
+        background-color: var(--scrollbar-track);
+        border-radius: 12px;
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='80'>😹</text></svg>");
+        background-size: 14px 14px;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+
+    /* サイズ変更用のつまみ */
+    ::-webkit-resizer {
+        background-color: var(--scrollbar-track);
+        border-radius: 12px;
+        background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50%' y='50%' dominant-baseline='central' text-anchor='middle' font-size='70'>😹</text></svg>");
+        background-size: 12px 12px;
+        background-repeat: no-repeat;
+        background-position: center;
+    }
+}
+
+/* --- W3C標準 --- */
+@supports not selector(::-webkit-scrollbar) {
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb-active) var(--scrollbar-track-active);
+    }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --scrollbar-thumb: rgb(50, 50, 100);
+        --scrollbar-thumb-hover: rgb(70, 70, 140);
+        --scrollbar-thumb-active: rgb(80, 80, 160);
+        --scrollbar-track: rgb(25, 25, 50);
+        --scrollbar-track-hover: rgb(35, 35, 75);
+        --scrollbar-track-active: rgb(40, 40, 80);
+        --scrollbar-start: rgba(255, 255, 255, 0.025);
+        --scrollbar-end: rgba(0, 0, 0, 0.025);
+    }
+}
+
+@view-transition {
+    navigation: auto;
+}
+
+/* 遷移前のページ */
+@keyframes fade-scale-out {
+    to {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
+/* 遷移後のページ */
+@keyframes fade-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.97);
+    }
+}
+
+/* rootの遷移アニメーションに適用 */
+::view-transition-old(root) {
+    animation: 0.25s cubic-bezier(0.4, 0, 0.2, 1) both fade-scale-out;
+}
+
+::view-transition-new(root) {
+    animation: 0.25s cubic-bezier(0.4, 0, 0.2, 1) both fade-scale-in;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+iframe,
+input,
+textarea {
+    max-width: 100%;
+}
+
+body,
+textarea,
+input,
+select,
+button {
+    font-family: system-ui, sans-serif;
+}
+
+input,
+button,
+textarea,
+select {
+    font-size: 1em;
+}
+
+pre {
+    overflow-x: auto;
+}
+
+fieldset {
+    min-width: 0;
+}
+
+a {
+    color: var(--accent-color);
+}

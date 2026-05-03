@@ -1,0 +1,4 @@
+footer>table>tbody>tr>td>ul {
+    margin-block-start: 0;
+    margin-block-end: 0
+}

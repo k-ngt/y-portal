@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found</title>
+    <link rel="stylesheet" href="/static/common.css">
+    <style>
+        .error-container {
+            text-align: center;
+            margin-top: 20vh;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 900;
+            margin: 0;
+        }
+
+        /* リストとSubgridのスタイル */
+        .breadcrumb-grid {
+            display: grid;
+            grid-template-columns: minmax(0, auto) minmax(0, auto);
+            column-gap: .25em;
+            row-gap: .125em;
+            width: fit-content;
+            max-width: 100%;
+            margin: 1em auto auto auto;
+            padding: 0;
+        }
+
+        .breadcrumb-grid li {
+            /* li自身はグリッドレイアウトから消し, 子要素(a)にulのグリッドを継承させる */
+            display: contents;
+        }
+
+        .breadcrumb-grid a {
+            display: grid;
+            /* Subgridを使って親(ul)の2カラム構成を引き継ぐ */
+            grid-template-columns: subgrid;
+            grid-column: 1 / -1;
+            /* 2カラム分ぶち抜く */
+            text-align: left;
+            transition: all 0.3s ease-in-out;
+            border-radius: .5em;
+            padding: .25em .5em;
+            background-color: light-dark(oklch(from var(--accent-color) 0.92 0.06 h), oklch(from var(--accent-color) 0.28 0.07 h));
+        }
+
+        .breadcrumb-grid a:hover {
+            background-color: light-dark(oklch(from var(--accent-color) 0.88 0.08 h), oklch(from var(--accent-color) 0.34 0.08 h));
+            border-radius: 1em;
+        }
+
+        .link-title {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .link-url {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            /* URLの末尾を残し, 前半部分を省略(...)にする */
+            direction: rtl;
+            text-align: left;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="error-container">
+        <p class="error-code">404</p>
+        <h2>ファイルが見つからん</h2>
+
+        <!-- エラーメッセージが渡されていれば詳細を表示 -->
+        {{if .Message}}
+        <p>以下の理由でアクセスできませんでした:</p>
+        <div>{{.Message}}</div>
+        {{else}}
+        <p>探しているページやファイルは存在しないか, 移動したみたいや.</p>
+        {{end}}
+
+        <ul id="dynamic-links" class="breadcrumb-grid">
+            <li>
+                <a href="/">
+                    <span class="link-title">トップページ</span>
+                    <span class="link-url">/</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", async () => {
+            const path = window.location.pathname;
+            const segments = path.split('/').filter(segment => segment !== '');
+            const container = document.getElementById('dynamic-links');
+
+            // 検証するURLのリストを作成
+            const urlsToCheck = ['/'];
+            let currentPath = '';
+            for (let i = 0; i < segments.length - 1; i++) {
+                currentPath += '/' + segments[i];
+                urlsToCheck.push(currentPath + '/');
+            }
+
+            // fetchで各階層にアクセスし, 存在確認とタイトルの取得を並行実行
+            const results = await Promise.all(urlsToCheck.map(async (url) => {
+                try {
+                    const res = await fetch(url, { method: 'GET' });
+                    if (res.ok) {
+                        const html = await res.text();
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        // titleタグがあれば取得, なければURLをフォールバックに
+                        const titleTag = doc.querySelector('title');
+                        const title = titleTag ? titleTag.textContent.trim() : '名称未設定';
+                        return { valid: true, url, title };
+                    }
+                } catch (e) {
+                    // CORSやネットワークエラーは無視
+                }
+                return { valid: false };
+            }));
+
+            // 存在する階層のみ抽出し, 逆順にソート
+            const validLinks = results.filter(r => r.valid).reverse();
+
+            // リストを再構築
+            container.innerHTML = '';
+            validLinks.forEach(link => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = link.url;
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'link-title';
+                titleSpan.textContent = link.title;
+
+                const urlSpan = document.createElement('span');
+                urlSpan.className = 'link-url';
+                // LTRマーク(U+200E)を挟むことで, direction: rtl環境下での記号(/等)の描画崩れを防止
+                urlSpan.textContent = '\u200E' + link.url + '\u200E';
+
+                a.appendChild(titleSpan);
+                a.appendChild(urlSpan);
+                li.appendChild(a);
+                container.appendChild(li);
+            });
+        });
+    </script>
+</body>
+
+</html>

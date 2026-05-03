@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.Hostname}}</title>
+    <link rel="stylesheet" href="/static/common.css">
+    <link rel="stylesheet" href="/static/root.css">
+    <meta name="view-transition" content="same-origin" />
+</head>
+
+<body>
+    <h1>{{.Hostname}}</h1>
+
+    <section>
+        <h2>Users</h2>
+        <ul class="user-list">
+            {{range .Users}}
+            <li class="user-item">
+                <a href="/~{{.}}">~{{.}}</a>
+            </li>
+            {{else}}
+            <p>
+                有効な public_html を持つユーザは見つかりませんでした.
+            </p>
+            {{end}}
+        </ul>
+    </section>
+
+    <hr>
+
+    <footer>
+        <table>
+            <caption>システム情報</caption>
+            <tbody>
+                <tr>
+                    <th scope="row">Node IPs</th>
+                    <td>
+                        <ul>
+                            {{range .IPs}}
+                            <li>
+                                <code>{{.}}</code>
+                            </li>
+                            {{end}}
+                        </ul>
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row">Version</th>
+                    <td><code>{{.Version}}</code></td>
+                </tr>
+                <tr>
+                    <th scope="row">Build Time</th>
+                    <td><code>{{.BuildTime}}</code></td>
+                </tr>
+                <tr>
+                    <th scope="row">Build Env</th>
+                    <td><code>{{.BuildInfo}}</code></td>
+                </tr>
+                <tr>
+                    <th scope="row">Runtime</th>
+                    <td><code>{{.RuntimeInfo}}</code></td>
+                </tr>
+                <tr>
+                    <th scope="row">Uptime</th>
+                    <td><code>{{.Uptime}}</code></td>
+                </tr>
+            </tbody>
+        </table>
+    </footer>
+</body>
+
+</html>
