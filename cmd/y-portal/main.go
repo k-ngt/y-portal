@@ -127,15 +127,8 @@ func main() {
 		}
 
 		// 有効なユーザの取得
-		var baseHome string
-		switch cachedOS {
-		case "darwin":
-			baseHome = "/Users"
-		case "linux":
-			baseHome = "/home"
-		case "windows":
-			baseHome = "C:\\Users"
-		default:
+		baseHome := getBaseHome()
+		if baseHome == "" {
 			http.Error(w, "Unsupported OS", 500)
 			return
 		}
@@ -213,15 +206,8 @@ func userDirHandler(w http.ResponseWriter, r *http.Request) {
 		subPath = parts[1]
 	}
 
-	var baseHome string
-	switch runtime.GOOS {
-	case "darwin":
-		baseHome = "/Users"
-	case "linux":
-		baseHome = "/home"
-	case "windows":
-		baseHome = "C:\\Users"
-	default:
+	baseHome := getBaseHome()
+	if baseHome == "" {
 		http.Error(w, "Unsupported OS", 500)
 		return
 	}
@@ -289,27 +275,40 @@ func serveWithCache(w http.ResponseWriter, r *http.Request, srcPath string, mode
 	if err != nil || srcStat.ModTime().After(cacheStat.ModTime()) {
 		fmt.Printf("Rendering cache for: %s\n", srcPath)
 
-		os.Mkdir(cacheDir, 0755)
+		os.Mkdir(cacheDir, 0777)
 
 		var htmlContent string
 		switch mode {
 		case "md":
 			htmlContent = convMD(srcPath, username)
+			// ユニークな一時ファイルを作成してアトミックにリネーム
+			tmpFile := fmt.Sprintf("%s.%d.tmp", cacheFile, time.Now().UnixNano())
 			// キャッシュファイルに書き出し
-			os.WriteFile(cacheFile, []byte(htmlContent), 0644)
+			os.WriteFile(tmpFile, []byte(htmlContent), 0644)
+			// リネーム
+			os.Rename(tmpFile, cacheFile)
 		case "typ":
-			if err := convTyp(srcPath, cacheFile); err != nil {
+			// ユニークかつTypstがHTML出力と認識できる拡張子の一時ファイル名
+			tmpFile := fmt.Sprintf("%s.%d.tmp.html", cacheFile, time.Now().UnixNano())
+
+			// Typstには一時ファイルをターゲットとして出力させる
+			if err := convTyp(srcPath, tmpFile); err != nil {
 				http.Error(w, "Typst Compilation Error: "+err.Error(), 500)
 				return
 			}
 
-			htmlData, _ := os.ReadFile(cacheFile)
-			manualCSS := extractManualCSS(srcPath)
+			htmlData, err := os.ReadFile(tmpFile)
+			if err != nil {
+				http.Error(w, "Cache Read Error: "+err.Error(), 500)
+				return
+			}
 
+			manualCSS := extractManualCSS(srcPath)
 			cssTags := buildCSSTags(username, "typ.css", manualCSS)
 			injectedHTML := strings.Replace(string(htmlData), "</head>", cssTags+"</head>", 1)
 
-			os.WriteFile(cacheFile, []byte(injectedHTML), 0644)
+			os.WriteFile(tmpFile, []byte(injectedHTML), 0644)
+			os.Rename(tmpFile, cacheFile)
 		}
 	}
 	// キャッシュファイルを返す
@@ -483,4 +482,17 @@ func getGPUModel() string {
 	}
 	out, _ := cmd.Output()
 	return strings.TrimSpace(string(out))
+}
+
+func getBaseHome() string {
+	switch runtime.GOOS {
+	case "darwin":
+		return "/Users"
+	case "linux":
+		return "/home"
+	case "windows":
+		return "C:\\Users"
+	default:
+		return ""
+	}
 }

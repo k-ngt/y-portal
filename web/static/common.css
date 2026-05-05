@@ -188,6 +188,11 @@
     box-sizing: border-box;
 }
 
+html {
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+}
+
 img,
 video,
 canvas,
@@ -208,7 +213,11 @@ button {
 input,
 button,
 textarea,
-select {
+select,
+pre,
+code,
+kbd,
+samp {
     font-size: 1em;
 }
 
