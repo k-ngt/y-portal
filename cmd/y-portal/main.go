@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
@@ -81,6 +82,10 @@ type RootData struct {
 }
 
 var tmpl *template.Template // グローバル変数
+
+// パッケージ変数としてコンパイル (@2x, @3x, @1.5x などに対応)
+// var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)\2([^>]*)>`)
+var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)["']([^>]*)>`)
 
 func init() {
 	var err error
@@ -256,6 +261,7 @@ func userDirHandler(w http.ResponseWriter, r *http.Request) {
 		manualCSS := extractManualCSS(fullPath)
 		cssTags := buildCSSTags(username, "html.css", manualCSS)
 		injectedHTML := strings.Replace(string(htmlData), "</head>", cssTags+"</head>", 1)
+		injectedHTML = injectSrcset(injectedHTML)
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write([]byte(injectedHTML))
 	default:
@@ -306,6 +312,7 @@ func serveWithCache(w http.ResponseWriter, r *http.Request, srcPath string, mode
 			manualCSS := extractManualCSS(srcPath)
 			cssTags := buildCSSTags(username, "typ.css", manualCSS)
 			injectedHTML := strings.Replace(string(htmlData), "</head>", cssTags+"</head>", 1)
+			injectedHTML = injectSrcset(injectedHTML)
 
 			os.WriteFile(tmpFile, []byte(injectedHTML), 0644)
 			os.Rename(tmpFile, cacheFile)
@@ -330,7 +337,10 @@ func convTyp(src, dst string) error {
 }
 
 func convMD(path string, username string) string {
-	data, _ := os.ReadFile(path)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return "Error reading Markdown file"
+	}
 	var buf strings.Builder
 	if err := mdParser.Convert(data, &buf); err != nil {
 		return "Error converting Markdown"
@@ -348,7 +358,8 @@ func convMD(path string, username string) string {
 	if err := tmpl.ExecuteTemplate(&out, "md.html", pData); err != nil {
 		return "Error executing Markdown template"
 	}
-	return out.String()
+
+	return injectSrcset(out.String())
 }
 
 func buildCSSTags(username string, globalCSS string, manualCSS string) string {
@@ -375,15 +386,12 @@ func extractManualCSS(path string) string {
 	}
 
 	lines := strings.Split(string(data), "\n")
-	searchLimit := 128
-	if len(lines) < searchLimit {
-		searchLimit = len(lines)
-	}
+	searchLimit := min(len(lines), 128)
 
-	for i := 0; i < searchLimit; i++ {
+	for i := range searchLimit {
 		line := strings.TrimSpace(lines[i])
-		if strings.HasPrefix(line, "// @css:") {
-			return strings.TrimSpace(strings.TrimPrefix(line, "// @css:"))
+		if after, ok := strings.CutPrefix(line, "// @css:"); ok {
+			return strings.TrimSpace(after)
 		}
 		if strings.HasPrefix(line, "<!-- @css:") {
 			return strings.TrimSpace(
@@ -495,4 +503,10 @@ func getBaseHome() string {
 	default:
 		return ""
 	}
+}
+
+// HTML文字列を受け取り, @Nx画像にsrcsetを付与する関数
+func injectSrcset(htmlStr string) string {
+	// 置換例: <img src="hoge@2x.png"> -> <img src="hoge@2x.png" srcset="hoge@2x.png 2x">
+	return retinaImgRegex.ReplaceAllString(htmlStr, `<img $1src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
 }

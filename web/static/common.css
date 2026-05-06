@@ -221,6 +221,10 @@ samp {
     font-size: 1em;
 }
 
+body {
+    overflow-wrap: anywhere;
+}
+
 pre {
     overflow-x: auto;
 }
@@ -231,4 +235,9 @@ fieldset {
 
 a {
     color: var(--accent-color);
+
+}
+
+img {
+    border-radius: .25em;
 }

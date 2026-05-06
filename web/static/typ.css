@@ -4,11 +4,13 @@
         color: initial;
         background-color: white;
         filter: invert(1) hue-rotate(180deg);
-        border-radius: .5em;
-        padding: .125em;
     }
+}
 
-    pre>code {
-        display: inline-block;
-    }
+code {
+    display: inline-block;
+    padding: .125em;
+    margin: .125em;
+    border-radius: .5em;
+    border: lightblue solid 1px;
 }
