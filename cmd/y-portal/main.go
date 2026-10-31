@@ -84,8 +84,9 @@ type RootData struct {
 var tmpl *template.Template // グローバル変数
 
 // パッケージ変数としてコンパイル (@2x, @3x, @1.5x などに対応)
-// var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)\2([^>]*)>`)
-var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)["']([^>]*)>`)
+// RE2 は後方参照 (\2) 非対応のため, 開きと同じ引用符で閉じるようにダブル/シングルを分けて書く
+// グループ: 1=src より前の属性, 2,3=ダブルクォート時の URL と倍率, 4,5=シングルクォート時の URL と倍率, 6=src より後ろ
+var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(?:"([^"]*?@([0-9.]+)x\.[a-zA-Z0-9]+)"|'([^']*?@([0-9.]+)x\.[a-zA-Z0-9]+)')([^>]*)>`)
 
 // 既に srcset 属性を持つかの判定用 (data-srcset などは対象外)
 var srcsetAttrRegex = regexp.MustCompile(`(?i)\ssrcset\s*=`)
@@ -516,6 +517,12 @@ func injectSrcset(htmlStr string) string {
 		if srcsetAttrRegex.MatchString(tag) {
 			return tag
 		}
-		return retinaImgRegex.ReplaceAllString(tag, `<img ${1}src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
+		m := retinaImgRegex.FindStringSubmatch(tag)
+		quote, url, scale := `"`, m[2], m[3]
+		if url == "" {
+			quote, url, scale = `'`, m[4], m[5]
+		}
+		return "<img " + m[1] + "src=" + quote + url + quote +
+			" srcset=" + quote + url + " " + scale + "x" + quote + m[6] + ">"
 	})
 }

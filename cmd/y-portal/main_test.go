@@ -54,6 +54,21 @@ func TestInjectSrcset(t *testing.T) {
 			want: `<img data-srcset="x.png 1x" src="a@2x.png" srcset="a@2x.png 2x">`,
 		},
 		{
+			name: "mismatched quotes are not treated as a src value",
+			in:   `<img src="a@2x.png' alt="x">`,
+			want: `<img src="a@2x.png' alt="x">`,
+		},
+		{
+			name: "apostrophe inside a double-quoted src",
+			in:   `<img src="it's@2x.png">`,
+			want: `<img src="it's@2x.png" srcset="it's@2x.png 2x">`,
+		},
+		{
+			name: "double quote inside a single-quoted src",
+			in:   `<img src='say"hi"@2x.png'>`,
+			want: `<img src='say"hi"@2x.png' srcset='say"hi"@2x.png 2x'>`,
+		},
+		{
 			name: "multiple images",
 			in:   `<img src="a@2x.png"><img src="b.png"><img class="c" src="d@2x.png">`,
 			want: `<img src="a@2x.png" srcset="a@2x.png 2x"><img src="b.png"><img class="c" src="d@2x.png" srcset="d@2x.png 2x">`,
