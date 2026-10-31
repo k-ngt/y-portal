@@ -39,6 +39,21 @@ func TestInjectSrcset(t *testing.T) {
 			want: `<img class="x" src="plain.png">`,
 		},
 		{
+			name: "existing srcset after src is kept as is",
+			in:   `<img src="a@2x.png" srcset="a.png 1x, a@2x.png 2x, a@3x.png 3x">`,
+			want: `<img src="a@2x.png" srcset="a.png 1x, a@2x.png 2x, a@3x.png 3x">`,
+		},
+		{
+			name: "existing srcset before src is kept as is",
+			in:   `<img srcset="a@2x.png 2x" src="a@2x.png">`,
+			want: `<img srcset="a@2x.png 2x" src="a@2x.png">`,
+		},
+		{
+			name: "data-srcset does not count as srcset",
+			in:   `<img data-srcset="x.png 1x" src="a@2x.png">`,
+			want: `<img data-srcset="x.png 1x" src="a@2x.png" srcset="a@2x.png 2x">`,
+		},
+		{
 			name: "multiple images",
 			in:   `<img src="a@2x.png"><img src="b.png"><img class="c" src="d@2x.png">`,
 			want: `<img src="a@2x.png" srcset="a@2x.png 2x"><img src="b.png"><img class="c" src="d@2x.png" srcset="d@2x.png 2x">`,

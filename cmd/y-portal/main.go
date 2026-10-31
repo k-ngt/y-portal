@@ -87,6 +87,9 @@ var tmpl *template.Template // グローバル変数
 // var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)\2([^>]*)>`)
 var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)["']([^>]*)>`)
 
+// 既に srcset 属性を持つかの判定用 (data-srcset などは対象外)
+var srcsetAttrRegex = regexp.MustCompile(`(?i)\ssrcset\s*=`)
+
 func init() {
 	var err error
 	// 起動時に1回だけパース
@@ -508,5 +511,11 @@ func getBaseHome() string {
 // HTML文字列を受け取り, @Nx画像にsrcsetを付与する関数
 func injectSrcset(htmlStr string) string {
 	// 置換例: <img src="hoge@2x.png"> -> <img src="hoge@2x.png" srcset="hoge@2x.png 2x">
-	return retinaImgRegex.ReplaceAllString(htmlStr, `<img ${1}src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
+	return retinaImgRegex.ReplaceAllStringFunc(htmlStr, func(tag string) string {
+		// 作者が srcset を書いている場合はそちらを優先し, 何もしない
+		if srcsetAttrRegex.MatchString(tag) {
+			return tag
+		}
+		return retinaImgRegex.ReplaceAllString(tag, `<img ${1}src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
+	})
 }
