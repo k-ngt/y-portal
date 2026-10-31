@@ -69,6 +69,26 @@ func TestInjectSrcset(t *testing.T) {
 			want: `<img src='say"hi"@2x.png' srcset='say"hi"@2x.png 2x'>`,
 		},
 		{
+			name: "data-src before a plain src is ignored",
+			in:   `<img data-src="big@2x.png" src="placeholder.png">`,
+			want: `<img data-src="big@2x.png" src="placeholder.png">`,
+		},
+		{
+			name: "data-src after a plain src is ignored",
+			in:   `<img src="placeholder.png" data-src="big@2x.png">`,
+			want: `<img src="placeholder.png" data-src="big@2x.png">`,
+		},
+		{
+			name: "plain src after data-src still gets srcset",
+			in:   `<img data-src="x.png" src="a@2x.png">`,
+			want: `<img data-src="x.png" src="a@2x.png" srcset="a@2x.png 2x">`,
+		},
+		{
+			name: "newline before src",
+			in:   "<img\n  class=\"x\"\n  src=\"a@2x.png\">",
+			want: "<img\n  class=\"x\"\n  src=\"a@2x.png\" srcset=\"a@2x.png 2x\">",
+		},
+		{
 			name: "multiple images",
 			in:   `<img src="a@2x.png"><img src="b.png"><img class="c" src="d@2x.png">`,
 			want: `<img src="a@2x.png" srcset="a@2x.png 2x"><img src="b.png"><img class="c" src="d@2x.png" srcset="d@2x.png 2x">`,
