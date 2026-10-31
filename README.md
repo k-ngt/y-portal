@@ -272,6 +272,12 @@ In rendered `.md`, `.typ` and `.html` output, any `<img>` whose `src` ends in
 The browser then shows the image at its intended display size rather than at
 its pixel size. Fractional scales like `@1.5x` work too.
 
+- Tags that already have a `srcset` are left as they are, so a hand-written
+  multi-density `srcset` always takes precedence.
+- Only the `src` attribute itself is checked. `data-src` and similar attributes
+  used for lazy loading are ignored.
+- Single and double quotes both work.
+
 ## Permissions helper (`fix-pub.sh`)
 
 `fix-pub.sh` is meant to be installed as `/usr/local/bin/fix-pub` and run by
