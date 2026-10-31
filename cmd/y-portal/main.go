@@ -508,5 +508,5 @@ func getBaseHome() string {
 // HTML文字列を受け取り, @Nx画像にsrcsetを付与する関数
 func injectSrcset(htmlStr string) string {
 	// 置換例: <img src="hoge@2x.png"> -> <img src="hoge@2x.png" srcset="hoge@2x.png 2x">
-	return retinaImgRegex.ReplaceAllString(htmlStr, `<img $1src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
+	return retinaImgRegex.ReplaceAllString(htmlStr, `<img ${1}src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
 }
