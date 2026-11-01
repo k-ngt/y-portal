@@ -84,8 +84,13 @@ type RootData struct {
 var tmpl *template.Template // グローバル変数
 
 // パッケージ変数としてコンパイル (@2x, @3x, @1.5x などに対応)
-// var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)\2([^>]*)>`)
-var retinaImgRegex = regexp.MustCompile(`(?i)<img\s+([^>]*?)src=(["'])([^"']*?@([0-9\.]+)x\.[a-zA-Z0-9]+)["']([^>]*)>`)
+// RE2 は後方参照 (\2) 非対応のため, 開きと同じ引用符で閉じるようにダブル/シングルを分けて書く
+// src の直前は空白に限定し, data-src などの別属性にはマッチさせない
+// グループ: 1=src より前の部分 (先頭の空白を含む), 2,3=ダブルクォート時の URL と倍率, 4,5=シングルクォート時の URL と倍率, 6=src より後ろ
+var retinaImgRegex = regexp.MustCompile(`(?i)<img(\s(?:[^>]*?\s)?)src=(?:"([^"]*?@([0-9.]+)x\.[a-zA-Z0-9]+)"|'([^']*?@([0-9.]+)x\.[a-zA-Z0-9]+)')([^>]*)>`)
+
+// 既に srcset 属性を持つかの判定用 (data-srcset などは対象外)
+var srcsetAttrRegex = regexp.MustCompile(`(?i)\ssrcset\s*=`)
 
 func init() {
 	var err error
@@ -508,5 +513,17 @@ func getBaseHome() string {
 // HTML文字列を受け取り, @Nx画像にsrcsetを付与する関数
 func injectSrcset(htmlStr string) string {
 	// 置換例: <img src="hoge@2x.png"> -> <img src="hoge@2x.png" srcset="hoge@2x.png 2x">
-	return retinaImgRegex.ReplaceAllString(htmlStr, `<img $1src=$2$3$2 srcset=$2$3 ${4}x$2$5>`)
+	return retinaImgRegex.ReplaceAllStringFunc(htmlStr, func(tag string) string {
+		// 作者が srcset を書いている場合はそちらを優先し, 何もしない
+		if srcsetAttrRegex.MatchString(tag) {
+			return tag
+		}
+		m := retinaImgRegex.FindStringSubmatch(tag)
+		quote, url, scale := `"`, m[2], m[3]
+		if url == "" {
+			quote, url, scale = `'`, m[4], m[5]
+		}
+		return "<img" + m[1] + "src=" + quote + url + quote +
+			" srcset=" + quote + url + " " + scale + "x" + quote + m[6] + ">"
+	})
 }
